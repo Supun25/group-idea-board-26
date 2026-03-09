@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group Idea Board</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="animated-background">
+        <div class="lightbulb"></div>
+        <div class="lightbulb"></div>
+        <div class="lightbulb"></div>
+        <div class="spark"></div>
+        <div class="spark"></div>
+        <div class="spark"></div>
+        <div class="thought-bubble"></div>
+        <div class="thought-bubble"></div>
+    </div>
+
+    <div class="container">
+        <header>
+            <div class="header-top">
+                <h1>💡 Group Idea Board</h1>
+                <button id="theme-toggle" class="theme-toggle" title="Toggle dark/light mode">🌙</button>
+            </div>
+            <div class="idea-count">
+                <span id="count-display">0 ideas</span>
+            </div>
+        </header>
+        
+        <section class="input-section">
+            <input type="text" id="name-input" placeholder="User Name..." class="name-input">
+            <input type="text" id="idea-input" placeholder="Idea..." class="idea-input">
+            <button id="add-idea-btn" class="btn-primary">Add Idea</button>
+            <button id="reset-board-btn" class="btn-secondary">Reset Board</button>
+        </section>
+
+        <section class="controls-section">
+            <label for="sort-dropdown" class="sort-label">Sort by:</label>
+            <select id="sort-dropdown" class="sort-dropdown">
+                <option value="likes">Most Liked</option>
+                <option value="time">Newest First</option>
+            </select>
+        </section>
+
+        <div class="ideas-container">
+            <div id="idea-list" class="idea-list">
+                <!-- Ideas will be added here dynamically -->
+            </div>
+        </div>
+
+        <footer class="app-footer">
+            <p>Developed by Group 26</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
