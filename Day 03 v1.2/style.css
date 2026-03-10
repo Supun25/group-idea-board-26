@@ -327,6 +327,22 @@ select:focus {
     transition: var(--transition);
 }
 
+/* Pomodoro timer styles */
+.pomodoro-section {
+    padding: 28px 25px;
+    background-color: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
+    text-align: center;
+    transition: var(--transition);
+    margin-top: 20px;
+}
+
+.pomodoro-display {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+}
+
 .sort-label {
     font-weight: 600;
     color: var(--text-secondary);
