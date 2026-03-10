@@ -3,54 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Group Idea Board</title>
+    <title>Group Idea Board - Group 26</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
-    <div class="animated-background">
-        <div class="lightbulb"></div>
-        <div class="lightbulb"></div>
-        <div class="lightbulb"></div>
-        <div class="spark"></div>
-        <div class="spark"></div>
-        <div class="spark"></div>
-        <div class="thought-bubble"></div>
-        <div class="thought-bubble"></div>
-    </div>
+<body class="light-theme">
+    <div class="animated-bg" id="animated-bg"></div>
+    
+    <div class="app-grid">
+        <!-- Top Navbar -->
+        <nav class="navbar">
+            <div class="nav-logo">💡 IdeaBoard</div>
+            <ul class="nav-links">
+                <li><a href="#" class="nav-link" data-view="home">Home</a></li>
+                <li><a href="#" class="nav-link" data-view="board">Group Idea Board</a></li>
+                <li><a href="#" class="nav-link" data-view="gpa">GPA Calculator</a></li>
+                <li><a href="#" class="nav-link" data-view="timer">Study Timer</a></li>
+            </ul>
+            <button id="theme-toggle" class="theme-btn">🌙 Toggle Theme</button>
+        </nav>
 
-    <div class="container">
-        <header>
-            <div class="header-top">
-                <h1>💡 Group Idea Board</h1>
-                <button id="theme-toggle" class="theme-toggle" title="Toggle dark/light mode">🌙</button>
-            </div>
-            <div class="idea-count">
-                <span id="count-display">0 ideas</span>
-            </div>
-        </header>
-        
-        <section class="input-section">
-            <input type="text" id="name-input" placeholder="User Name..." class="name-input">
-            <input type="text" id="idea-input" placeholder="Idea..." class="idea-input">
-            <button id="add-idea-btn" class="btn-primary">Add Idea</button>
-            <button id="reset-board-btn" class="btn-secondary">Reset Board</button>
-        </section>
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <h3>Upcoming Events</h3>
+            <ul class="event-list">
+                <li><span class="event-dot"></span> Project Deadline - Mar 15</li>
+                <li><span class="event-dot"></span> Group Meeting - Mar 12</li>
+                <li><span class="event-dot"></span> Final Presentation - Mar 20</li>
+                <li><span class="event-dot"></span> Research Phase - Ongoing</li>
+            </ul>
+        </aside>
 
-        <section class="controls-section">
-            <label for="sort-dropdown" class="sort-label">Sort by:</label>
-            <select id="sort-dropdown" class="sort-dropdown">
-                <option value="likes">Most Liked</option>
-                <option value="time">Newest First</option>
-            </select>
-        </section>
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Home View -->
+            <section id="home-view" class="view-section active">
+                <div class="hero-section">
+                    <div class="hero-content">
+                        <h1>Welcome to IdeaBoard</h1>
+                        <p class="hero-subtitle">Collaborate, Share, and Innovate with Your Group</p>
+                        <p class="hero-description">A platform designed for Group 26 to brainstorm brilliant ideas, track tasks, manage time, and optimize academic performance.</p>
+                        <button class="cta-btn" onclick="document.querySelector('[data-view=\"board\"]').click()">Explore Ideas</button>
+                    </div>
+                    <div class="hero-features">
+                        <div class="feature-card">
+                            <span class="feature-icon">💡</span>
+                            <h3>Share Ideas</h3>
+                            <p>Contribute your brilliant ideas and get feedback from the team</p>
+                        </div>
+                        <div class="feature-card">
+                            <span class="feature-icon">📊</span>
+                            <h3>Track Progress</h3>
+                            <p>Monitor likes and engagement on your ideas in real-time</p>
+                        </div>
+                        <div class="feature-card">
+                            <span class="feature-icon">⏱️</span>
+                            <h3>Manage Time</h3>
+                            <p>Use our study timer to stay focused and productive</p>
+                        </div>
+                        <div class="feature-card">
+                            <span class="feature-icon">📈</span>
+                            <h3>Boost Performance</h3>
+                            <p>Calculate GPA and track your academic goals</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-        <div class="ideas-container">
-            <div id="idea-list" class="idea-list">
-                <!-- Ideas will be added here dynamically -->
-            </div>
-        </div>
+            <!-- Group Idea Board View -->
+            <section id="board-view" class="view-section">
+                <header class="content-header">
+                    <h1>Group Idea Board</h1>
+                    <div class="stats-bar">
+                        <span id="total-ideas-counter">Total Ideas: 0</span>
+                        <div class="sort-container">
+                            <label for="sort-by">Sort By:</label>
+                            <select id="sort-by">
+                                <option value="net-likes">Likes - Dislikes</option>
+                                <option value="time">Time</option>
+                                <option value="total-likes">Total Likes</option>
+                            </select>
+                        </div>
+                    </div>
+                </header>
 
-        <footer class="app-footer">
+                <section class="idea-form-section">
+                    <div class="form-group">
+                        <input type="text" id="user-name" placeholder="Your Name" aria-label="Your Name">
+                        <textarea id="idea-text" placeholder="Share your brilliant idea..." aria-label="Idea Text"></textarea>
+                        <button id="submit-idea" class="primary-btn">Post Idea</button>
+                    </div>
+                </section>
+
+                <section class="idea-board" id="idea-board">
+                    <!-- Idea cards will be injected here -->
+                </section>
+            </section>
+
+            <!-- GPA Calculator Placeholder -->
+            <section id="gpa-view" class="view-section">
+                <div class="placeholder-section">
+                    <h1>GPA Calculator</h1>
+                    <p>Coming Soon!</p>
+                </div>
+            </section>
+
+            <!-- Study Timer Placeholder -->
+            <section id="timer-view" class="view-section">
+                <div class="placeholder-section">
+                    <h1>Study Timer</h1>
+                    <p>Coming Soon!</p>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
             <p>Developed by Group 26</p>
         </footer>
     </div>

@@ -1,233 +1,234 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const nameInput = document.getElementById('name-input');
-    const ideaInput = document.getElementById('idea-input');
-    const addIdeaBtn = document.getElementById('add-idea-btn');
-    const resetBoardBtn = document.getElementById('reset-board-btn');
-    const themeToggle = document.getElementById('theme-toggle');
-    const sortDropdown = document.getElementById('sort-dropdown');
-    const ideaListContainer = document.getElementById('idea-list');
+    // DOM Elements
+    const ideaBoard = document.getElementById('idea-board');
+    const userNameInput = document.getElementById('user-name');
+    const ideaTextInput = document.getElementById('idea-text');
+    const submitBtn = document.getElementById('submit-idea');
+    const totalIdeasCounter = document.getElementById('total-ideas-counter');
+    const sortByDropdown = document.getElementById('sort-by');
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    const animatedBg = document.getElementById('animated-bg');
+    const navLinks = document.querySelectorAll('.nav-link');
 
-    // Initialize data
-    let ideas = JSON.parse(localStorage.getItem('ideas')) || [
-        { id: 1, text: 'Build a study planner', author: 'Alice', likes: 0, dislikes: 0, pinned: false, userVote: null, timestamp: new Date().toLocaleString() },
-        { id: 2, text: 'Start a podcast', author: 'Bob', likes: 0, dislikes: 0, pinned: false, userVote: null, timestamp: new Date().toLocaleString() },
-        { id: 3, text: 'Organize a coding workshop', author: 'Charlie', likes: 0, dislikes: 0, pinned: false, userVote: null, timestamp: new Date().toLocaleString() }
-    ];
-    let idCounter = ideas.length > 0 ? Math.max(...ideas.map(i => i.id)) + 1 : 1;
-    let currentSortMethod = localStorage.getItem('sortMethod') || 'likes';
+    // State
+    let ideas = JSON.parse(localStorage.getItem('g26_ideas')) || [];
+    let currentTheme = localStorage.getItem('g26_theme') || 'light-theme';
+    let currentView = 'home';
 
-    // Theme toggle
-    function initTheme() {
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'dark') {
-            document.body.classList.add('dark-theme');
-            themeToggle.textContent = '☀️';
+    // Initialize
+    document.body.className = currentTheme;
+    updateThemeButtonText();
+    renderIdeas();
+    createFloatingElements();
+    initializeNavigation();
+
+    // Event Listeners
+    submitBtn.addEventListener('click', addIdea);
+    sortByDropdown.addEventListener('change', renderIdeas);
+    themeToggleBtn.addEventListener('click', toggleTheme);
+
+    // Navigation Initialization
+    function initializeNavigation() {
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const viewName = link.getAttribute('data-view');
+                switchView(viewName);
+            });
+        });
+    }
+
+    function switchView(viewName) {
+        // Hide all views
+        document.querySelectorAll('.view-section').forEach(section => {
+            section.classList.remove('active');
+        });
+
+        // Show the selected view
+        const viewElement = document.getElementById(`${viewName}-view`);
+        if (viewElement) {
+            viewElement.classList.add('active');
+            currentView = viewName;
+
+            // Re-render ideas when switching to board view
+            if (viewName === 'board') {
+                renderIdeas();
+            }
         }
     }
 
-    themeToggle.addEventListener('click', () => {
-        document.body.classList.toggle('dark-theme');
-        const isDark = document.body.classList.contains('dark-theme');
-        localStorage.setItem('theme', isDark ? 'dark' : 'light');
-        themeToggle.textContent = isDark ? '☀️' : '🌙';
-    });
-
-    // Sort dropdown listener
-    sortDropdown.addEventListener('change', (e) => {
-        currentSortMethod = e.target.value;
-        localStorage.setItem('sortMethod', currentSortMethod);
-        renderIdeas();
-    });
-
-    // Set initial dropdown value
-    sortDropdown.value = currentSortMethod;
-
-    // Add idea
-    addIdeaBtn.addEventListener('click', addIdea);
-    ideaInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') addIdea();
-    });
-
     function addIdea() {
-        const name = nameInput.value.trim();
-        const text = ideaInput.value.trim();
+        const name = userNameInput.value.trim();
+        const text = ideaTextInput.value.trim();
 
-        if (!name) {
-            alert('Please enter your name.');
-            nameInput.focus();
-            return;
-        }
-
-        if (!text) {
-            alert('Please enter an idea.');
-            ideaInput.focus();
+        if (!name || !text) {
+            alert('Please fill in both your name and your idea!');
             return;
         }
 
         const newIdea = {
-            id: idCounter++,
-            text: text,
+            id: Date.now(),
             author: name,
+            text: text,
+            timestamp: new Date().toLocaleString(),
             likes: 0,
             dislikes: 0,
             pinned: false,
-            userVote: null,
-            timestamp: new Date().toLocaleString()
+            userVote: null // 'like', 'dislike', or null
         };
 
-        ideas.unshift(newIdea);
-        saveData();
-        renderIdeas();
-
-        nameInput.value = '';
-        ideaInput.value = '';
-        ideaInput.focus();
+        ideas.push(newIdea);
+        saveAndRender();
+        
+        // Clear inputs
+        userNameInput.value = '';
+        ideaTextInput.value = '';
     }
 
-    // Reset board
-    resetBoardBtn.addEventListener('click', () => {
-        if (confirm('Are you sure you want to clear all ideas? This cannot be undone.')) {
-            ideas = [];
-            saveData();
-            renderIdeas();
-        }
-    });
-
-    // Delete idea
-    function deleteIdea(id) {
-        ideas = ideas.filter(idea => idea.id !== id);
-        saveData();
-        renderIdeas();
-    }
-
-    // Pin/Unpin idea
     function togglePin(id) {
         const idea = ideas.find(i => i.id === id);
         if (idea) {
             idea.pinned = !idea.pinned;
-            saveData();
-            renderIdeas();
+            saveAndRender();
         }
     }
 
-    // Vote on idea (like/dislike)
-    function vote(id, voteType) {
+    function deleteIdea(id) {
+        if (confirm('Are you sure you want to delete this idea?')) {
+            ideas = ideas.filter(i => i.id !== id);
+            saveAndRender();
+        }
+    }
+
+    function handleVote(id, type) {
         const idea = ideas.find(i => i.id === id);
         if (!idea) return;
 
-        // Remove previous vote
-        if (idea.userVote === 'like') {
-            idea.likes--;
-        } else if (idea.userVote === 'dislike') {
-            idea.dislikes--;
-        }
-
-        // Apply new vote
-        if (idea.userVote === voteType) {
-            // Clicking same vote again unvotes
+        if (idea.userVote === type) {
+            // Undo vote
+            idea[type === 'like' ? 'likes' : 'dislikes']--;
             idea.userVote = null;
         } else {
-            if (voteType === 'like') {
-                idea.likes++;
-            } else if (voteType === 'dislike') {
-                idea.dislikes++;
+            // Change or add vote
+            if (idea.userVote) {
+                idea[idea.userVote === 'like' ? 'likes' : 'dislikes']--;
             }
-            idea.userVote = voteType;
+            idea[type === 'like' ? 'likes' : 'dislikes']++;
+            idea.userVote = type;
         }
 
-        saveData();
+        saveAndRender();
+    }
+
+    function saveAndRender() {
+        localStorage.setItem('g26_ideas', JSON.stringify(ideas));
         renderIdeas();
     }
 
-    // Sort ideas based on current sort method
-    function sortIdeas() {
-        const pinned = ideas.filter(i => i.pinned);
-        const unpinned = ideas.filter(i => !i.pinned);
-
-        if (currentSortMethod === 'likes') {
-            unpinned.sort((a, b) => b.likes - a.likes);
-        } else if (currentSortMethod === 'time') {
-            // Keep original order (newest first - already prepended)
-            // unpinned is already in time order
-        }
-
-        return [...pinned, ...unpinned];
-    }
-
-    // Render ideas
     function renderIdeas() {
-        ideaListContainer.innerHTML = '';
+        const sortMethod = sortByDropdown.value;
+        
+        // Split into pinned and unpinned
+        const pinnedIdeas = ideas.filter(i => i.pinned);
+        const unpinnedIdeas = ideas.filter(i => !i.pinned);
 
-        // Update idea count
-        const countDisplay = document.getElementById('count-display');
-        if (countDisplay) {
-            countDisplay.textContent = `${ideas.length} ${ideas.length === 1 ? 'idea' : 'ideas'}`;
-        }
+        // Sort unpinned ideas
+        unpinnedIdeas.sort((a, b) => {
+            if (sortMethod === 'net-likes') {
+                return (b.likes - b.dislikes) - (a.likes - a.dislikes);
+            } else if (sortMethod === 'time') {
+                return b.id - a.id; // Newest first
+            } else if (sortMethod === 'total-likes') {
+                return b.likes - a.likes;
+            }
+            return 0;
+        });
 
-        if (ideas.length === 0) {
-            ideaListContainer.innerHTML = '<div class="empty-state"><p>✨ No ideas yet. Be the first to add one!</p></div>';
+        // Always put pinned at top
+        const sortedIdeas = [...pinnedIdeas, ...unpinnedIdeas];
+
+        // Update Counter
+        totalIdeasCounter.textContent = `Total Ideas: ${ideas.length}`;
+
+        // Clear and Render
+        ideaBoard.innerHTML = '';
+        
+        if (sortedIdeas.length === 0) {
+            ideaBoard.innerHTML = '<p style="grid-column: 1/-1; text-align: center; opacity: 0.6; padding: 40px;">No ideas yet. Start the brainstorming!</p>';
             return;
         }
 
-        const sorted = sortIdeas();
-
-        sorted.forEach(idea => {
+        sortedIdeas.forEach(idea => {
             const card = document.createElement('div');
             card.className = `idea-card ${idea.pinned ? 'pinned' : ''}`;
-
-            const isLiked = idea.userVote === 'like';
-            const isDisliked = idea.userVote === 'dislike';
-
+            
             card.innerHTML = `
-                <div class="idea-content">
-                    <div class="idea-text">${escapeHtml(idea.text)}</div>
-                    <div class="idea-meta">
-                        <span>By <span class="idea-author">${escapeHtml(idea.author)}</span></span>
-                        <span class="idea-timestamp">📅 ${idea.timestamp}</span>
+                ${idea.pinned ? '<div class="pin-tag">Pinned</div>' : ''}
+                <div class="card-header">
+                    <span class="author-name">${escapeHTML(idea.author)}</span>
+                    <span class="timestamp">${idea.timestamp}</span>
+                </div>
+                <div class="idea-body">
+                    <p>${escapeHTML(idea.text)}</p>
+                </div>
+                <div class="card-actions">
+                    <div class="vote-btns">
+                        <button class="vote-btn like ${idea.userVote === 'like' ? 'active' : ''}" onclick="window.handleVoteAction(${idea.id}, 'like')">
+                            👍 <span>${idea.likes}</span>
+                        </button>
+                        <button class="vote-btn dislike ${idea.userVote === 'dislike' ? 'active' : ''}" onclick="window.handleVoteAction(${idea.id}, 'dislike')">
+                            👎 <span>${idea.dislikes}</span>
+                        </button>
+                    </div>
+                    <div class="utility-btns">
+                        <button class="pin-btn ${idea.pinned ? 'active' : ''}" onclick="window.handlePinAction(${idea.id})" title="Pin Idea">
+                            📌
+                        </button>
+                        <button class="delete-btn" onclick="window.handleDeleteAction(${idea.id})" title="Delete Idea">
+                            Delete
+                        </button>
                     </div>
                 </div>
-                <div class="idea-buttons">
-                    <button class="btn-card btn-like ${isLiked ? 'active' : ''}" data-id="${idea.id}" data-vote="like">
-                        👍 <span class="vote-counter">${idea.likes}</span>
-                    </button>
-                    <button class="btn-card btn-dislike ${isDisliked ? 'active' : ''}" data-id="${idea.id}" data-vote="dislike">
-                        👎 <span class="vote-counter">${idea.dislikes}</span>
-                    </button>
-                    <button class="btn-card btn-pin ${idea.pinned ? 'pinned' : ''}" data-id="${idea.id}">
-                        ${idea.pinned ? '📍 Unpin' : '📌 Pin'}
-                    </button>
-                    <button class="btn-card btn-delete" data-id="${idea.id}">🗑️ Delete</button>
-                </div>
             `;
-
-            // Add event listeners
-            card.querySelector('.btn-like').addEventListener('click', () => vote(idea.id, 'like'));
-            card.querySelector('.btn-dislike').addEventListener('click', () => vote(idea.id, 'dislike'));
-            card.querySelector('.btn-pin').addEventListener('click', () => togglePin(idea.id));
-            card.querySelector('.btn-delete').addEventListener('click', () => deleteIdea(idea.id));
-
-            ideaListContainer.appendChild(card);
+            ideaBoard.appendChild(card);
         });
     }
 
-    // Save data to localStorage
-    function saveData() {
-        localStorage.setItem('ideas', JSON.stringify(ideas));
+    // Theme Logic
+    function toggleTheme() {
+        currentTheme = currentTheme === 'light-theme' ? 'dark-theme' : 'light-theme';
+        document.body.className = currentTheme;
+        localStorage.setItem('g26_theme', currentTheme);
+        updateThemeButtonText();
     }
 
-    // Escape HTML to prevent XSS
-    function escapeHtml(text) {
-        const map = {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#039;'
-        };
-        return text.replace(/[&<>"']/g, char => map[char]);
+    function updateThemeButtonText() {
+        themeToggleBtn.textContent = currentTheme === 'light-theme' ? '🌙 Dark Mode' : '☀️ Light Mode';
     }
 
-    // Initialize
-    initTheme();
-    renderIdeas();
+    // Background Animation (Floating Lightbulbs/Sparks)
+    function createFloatingElements() {
+        const symbols = ['💡', '✨', '⚡', '🌟'];
+        for (let i = 0; i < 15; i++) {
+            const el = document.createElement('div');
+            el.className = 'floating-bulb';
+            el.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+            el.style.left = Math.random() * 100 + 'vw';
+            el.style.animationDuration = (Math.random() * 5 + 5) + 's';
+            el.style.animationDelay = (Math.random() * 10) + 's';
+            el.style.fontSize = (Math.random() * 20 + 20) + 'px';
+            animatedBg.appendChild(el);
+        }
+    }
+
+    // Global Action Handlers (for onclick attributes)
+    window.handleVoteAction = (id, type) => handleVote(id, type);
+    window.handlePinAction = (id) => togglePin(id);
+    window.handleDeleteAction = (id) => deleteIdea(id);
+
+    function escapeHTML(str) {
+        const p = document.createElement('p');
+        p.textContent = str;
+        return p.innerHTML;
+    }
 });
