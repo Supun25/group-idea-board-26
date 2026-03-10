@@ -38,6 +38,119 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // GPA Calculator DOM Elements
+    const addCourseBtn = document.getElementById('add-course-btn');
+    const courseNameInput = document.getElementById('course-name');
+    const courseCreditsInput = document.getElementById('course-credits');
+    const courseGradeSelect = document.getElementById('course-grade');
+    const courseList = document.getElementById('course-list');
+    const gpaValue = document.getElementById('gpa-value');
+    const totalCreditsValue = document.getElementById('total-credits');
+    const totalQualityPointsValue = document.getElementById('total-quality-points');
+
+    const resetGpaBtn = document.getElementById('reset-gpa-btn');
+
+    // GPA State
+    let courses = JSON.parse(localStorage.getItem('g26_courses')) || [];
+
+    // GPA Initializer
+    function initializeGPA() {
+        renderCourses();
+        calculateGPA();
+        if (addCourseBtn) {
+            addCourseBtn.addEventListener('click', addCourse);
+        }
+        if (resetGpaBtn) {
+            resetGpaBtn.addEventListener('click', resetGPA);
+        }
+    }
+
+    // GPA Functions
+    function addCourse() {
+        const name = courseNameInput.value.trim();
+        const credits = parseFloat(courseCreditsInput.value);
+        const gradeValue = parseFloat(courseGradeSelect.value);
+        const gradeText = courseGradeSelect.options[courseGradeSelect.selectedIndex].text;
+
+        if (!name || isNaN(credits) || credits <= 0 || isNaN(gradeValue)) {
+            alert('Please fill in all fields correctly.');
+            return;
+        }
+
+        const newCourse = {
+            id: Date.now(),
+            name: name,
+            credits: credits,
+            gradeValue: gradeValue,
+            gradeText: gradeText
+        };
+
+        courses.push(newCourse);
+        saveAndRenderCourses();
+        
+        courseNameInput.value = '';
+        courseCreditsInput.value = '';
+        courseGradeSelect.value = '4.0';
+    }
+
+    function deleteCourse(id) {
+        courses = courses.filter(c => c.id !== id);
+        saveAndRenderCourses();
+    }
+
+    function resetGPA() {
+        if (confirm('Are you sure you want to reset your GPA data? This action cannot be undone.')) {
+            courses = [];
+            saveAndRenderCourses();
+        }
+    }
+
+    function saveAndRenderCourses() {
+        localStorage.setItem('g26_courses', JSON.stringify(courses));
+        renderCourses();
+        calculateGPA();
+    }
+
+    function calculateGPA() {
+        let totalCredits = 0;
+        let totalQualityPoints = 0;
+
+        courses.forEach(course => {
+            totalCredits += course.credits;
+            totalQualityPoints += course.gradeValue * course.credits;
+        });
+
+        const gpa = totalCredits === 0 ? 0 : totalQualityPoints / totalCredits;
+
+        gpaValue.textContent = gpa.toFixed(2);
+        totalCreditsValue.textContent = totalCredits;
+        totalQualityPointsValue.textContent = totalQualityPoints.toFixed(2);
+    }
+
+    function renderCourses() {
+        if (!courseList) return;
+        courseList.innerHTML = '';
+        courses.forEach(course => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${escapeHTML(course.name)}</td>
+                <td>${course.credits}</td>
+                <td>${course.gradeText}</td>
+                <td><button class="delete-course-btn" data-id="${course.id}">Delete</button></td>
+            `;
+            courseList.appendChild(row);
+        });
+
+        // Add event listeners to delete buttons
+        document.querySelectorAll('.delete-course-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const id = parseInt(e.target.getAttribute('data-id'));
+                deleteCourse(id);
+            });
+        });
+    }
+
+    // Switch view logic modification
     function switchView(viewName) {
         // Hide all views
         document.querySelectorAll('.view-section').forEach(section => {
@@ -53,8 +166,151 @@ document.addEventListener('DOMContentLoaded', () => {
             // Re-render ideas when switching to board view
             if (viewName === 'board') {
                 renderIdeas();
+            } else if (viewName === 'gpa') {
+                initializeGPA();
+            } else if (viewName === 'timer') {
+                initializeTimer();
             }
         }
+    }
+
+    // Timer DOM Elements
+    const timerTime = document.getElementById('timer-time');
+    const timerModeButtons = document.querySelectorAll('.timer-mode-btn');
+    const startStopBtn = document.getElementById('timer-start-stop-btn');
+    const resetBtn = document.getElementById('timer-reset-btn');
+    const taskInput = document.getElementById('task-input');
+    const addTaskBtn = document.getElementById('add-task-btn');
+    const taskList = document.getElementById('task-list');
+
+    // Timer State
+    let timerInterval;
+    let timerState = {
+        mode: 'pomodoro',
+        time: 25 * 60,
+        isRunning: false,
+        tasks: JSON.parse(localStorage.getItem('g26_tasks')) || []
+    };
+
+    const timeModes = {
+        pomodoro: 25 * 60,
+        shortBreak: 5 * 60,
+        longBreak: 15 * 60
+    };
+
+    // Timer Initializer
+    function initializeTimer() {
+        renderTasks();
+        updateTimerDisplay();
+        timerModeButtons.forEach(button => {
+            button.addEventListener('click', () => switchMode(button.dataset.mode));
+        });
+        if (startStopBtn) {
+            startStopBtn.addEventListener('click', toggleTimer);
+        }
+        if (resetBtn) {
+            resetBtn.addEventListener('click', resetTimer);
+        }
+        if (addTaskBtn) {
+            addTaskBtn.addEventListener('click', addTask);
+        }
+    }
+
+    // Timer Functions
+    function switchMode(newMode) {
+        timerState.mode = newMode;
+        timerState.isRunning = false;
+        clearInterval(timerInterval);
+        timerState.time = timeModes[newMode];
+        updateTimerDisplay();
+        startStopBtn.textContent = 'Start';
+        
+        timerModeButtons.forEach(button => {
+            button.classList.toggle('active', button.dataset.mode === newMode);
+        });
+    }
+
+    function toggleTimer() {
+        timerState.isRunning = !timerState.isRunning;
+        if (timerState.isRunning) {
+            startStopBtn.textContent = 'Stop';
+            timerInterval = setInterval(() => {
+                timerState.time--;
+                updateTimerDisplay();
+                if (timerState.time <= 0) {
+                    clearInterval(timerInterval);
+                    // Optional: Auto-switch to the next mode
+                }
+            }, 1000);
+        } else {
+            startStopBtn.textContent = 'Start';
+            clearInterval(timerInterval);
+        }
+    }
+
+    function resetTimer() {
+        timerState.isRunning = false;
+        clearInterval(timerInterval);
+        timerState.time = timeModes[timerState.mode];
+        updateTimerDisplay();
+        startStopBtn.textContent = 'Start';
+    }
+
+    function updateTimerDisplay() {
+        const minutes = Math.floor(timerState.time / 60);
+        const seconds = timerState.time % 60;
+        if (timerTime) {
+            timerTime.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+    }
+
+    // Task Functions
+    function addTask() {
+        const taskText = taskInput.value.trim();
+        if (taskText) {
+            timerState.tasks.push({ text: taskText, completed: false });
+            taskInput.value = '';
+            saveAndRenderTasks();
+        }
+    }
+
+    function toggleTask(index) {
+        timerState.tasks[index].completed = !timerState.tasks[index].completed;
+        saveAndRenderTasks();
+    }
+
+    function deleteTask(index) {
+        timerState.tasks.splice(index, 1);
+        saveAndRenderTasks();
+    }
+
+    function saveAndRenderTasks() {
+        localStorage.setItem('g26_tasks', JSON.stringify(timerState.tasks));
+        renderTasks();
+    }
+
+    function renderTasks() {
+        if (!taskList) return;
+        taskList.innerHTML = '';
+        timerState.tasks.forEach((task, index) => {
+            const li = document.createElement('li');
+            li.className = task.completed ? 'completed' : '';
+            li.innerHTML = `
+                <span>${escapeHTML(task.text)}</span>
+                <div class="task-actions">
+                    <button class="task-complete-btn" data-index="${index}">✓</button>
+                    <button class="task-delete-btn" data-index="${index}">✗</button>
+                </div>
+            `;
+            taskList.appendChild(li);
+        });
+
+        document.querySelectorAll('.task-complete-btn').forEach(button => {
+            button.addEventListener('click', (e) => toggleTask(e.target.dataset.index));
+        });
+        document.querySelectorAll('.task-delete-btn').forEach(button => {
+            button.addEventListener('click', (e) => deleteTask(e.target.dataset.index));
+        });
     }
 
     function addIdea() {
@@ -134,9 +390,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Sort unpinned ideas
         unpinnedIdeas.sort((a, b) => {
-            if (sortMethod === 'net-likes') {
-                return (b.likes - b.dislikes) - (a.likes - a.dislikes);
-            } else if (sortMethod === 'time') {
+            if (sortMethod === 'time') {
                 return b.id - a.id; // Newest first
             } else if (sortMethod === 'total-likes') {
                 return b.likes - a.likes;
