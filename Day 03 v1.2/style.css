@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap');
 
 :root {
     --light-cream: #fffdee;
@@ -10,6 +10,8 @@
     --text-dark: #333;
     --text-light: #fffdee;
     --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    --font-heading: 'Montserrat', sans-serif;
+    --font-body: 'Poppins', sans-serif;
 }
 
 /* Theme Variables */
@@ -39,8 +41,13 @@ body.dark-theme {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--font-body);
 }
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+}
+
 
 body {
     background-color: var(--bg-color);
@@ -68,11 +75,17 @@ body {
     background-color: var(--nav-bg);
     color: var(--text-light);
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
     padding: 0 40px;
     z-index: 100;
     box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+.nav-logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--lime-yellow);
 }
 
 .nav-links {
@@ -100,7 +113,6 @@ body {
     border-radius: 20px;
     cursor: pointer;
     transition: var(--transition);
-    margin-left: auto;
 }
 
 .theme-btn:hover {
@@ -240,6 +252,11 @@ body.dark-theme .hero-subtitle {
     max-width: 1200px;
 }
 
+.hero-features a {
+    text-decoration: none;
+    color: inherit;
+}
+
 .feature-card {
     background: var(--card-bg);
     padding: 30px;
@@ -248,6 +265,7 @@ body.dark-theme .hero-subtitle {
     text-align: center;
     transition: var(--transition);
     box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    height: 100%;
 }
 
 .feature-card:hover {
@@ -368,7 +386,7 @@ textarea {
 }
 
 .primary-btn {
-    align-self: flex-end;
+    align-self: stretch;
     background-color: var(--dark-green);
     color: white;
     padding: 12px 30px;
@@ -381,9 +399,25 @@ textarea {
 
 .primary-btn:hover {
     background-color: var(--deep-green);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(7, 102, 83, 0.3);
 }
+
+.secondary-btn {
+    align-self: stretch;
+    background-color: transparent;
+    color: var(--dark-green);
+    padding: 12px 30px;
+    border: 1px solid var(--dark-green);
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.secondary-btn:hover {
+    background-color: var(--dark-green);
+    color: white;
+}
+
 
 /* Idea Board */
 .idea-board {
@@ -505,6 +539,7 @@ body.dark-theme .author-name {
     color: #ffd700; /* Gold highlight as requested */
 }
 
+
 .delete-btn {
     background: transparent;
     border: none;
@@ -512,6 +547,226 @@ body.dark-theme .author-name {
     cursor: pointer;
     font-size: 0.9rem;
 }
+
+/* GPA Calculator Styles */
+.gpa-calculator-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 40px;
+}
+
+.gpa-form-container {
+    background: var(--card-bg);
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.gpa-form-group {
+    display: grid;
+    grid-template-columns: 3fr 1fr 1fr auto auto;
+    gap: 15px;
+    align-items: center;
+}
+
+.gpa-form-group input, .gpa-form-group select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid var(--input-border);
+    border-radius: 8px;
+    background: var(--grid-bg);
+    color: var(--text-color);
+}
+
+.gpa-results-container {
+    background: var(--card-bg);
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.gpa-summary {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.gpa-summary h2 {
+    font-size: 1.5rem;
+    color: var(--dark-green);
+    margin-bottom: 10px;
+}
+
+body.dark-theme .gpa-summary h2 {
+    color: var(--lime-yellow);
+}
+
+#gpa-value {
+    font-size: 4rem;
+    font-weight: 700;
+    color: var(--dark-green);
+}
+
+body.dark-theme #gpa-value {
+    color: var(--lime-yellow);
+}
+
+.gpa-summary-details {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 15px;
+    opacity: 0.8;
+}
+
+.course-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.course-table th, .course-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--input-border);
+}
+
+.course-table th {
+    font-weight: 600;
+    color: var(--dark-green);
+}
+
+body.dark-theme .course-table th {
+    color: var(--lime-yellow);
+}
+
+.delete-course-btn {
+    background-color: #ff7675;
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.delete-course-btn:hover {
+    background-color: #d63031;
+}
+
+/* Timer Styles */
+.timer-container {
+    background: var(--card-bg);
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    max-width: 500px;
+    margin: 0 auto 40px auto;
+    text-align: center;
+}
+
+.timer-mode-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 30px;
+}
+
+.timer-mode-btn {
+    background: transparent;
+    border: 1px solid var(--input-border);
+    color: var(--text-color);
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.timer-mode-btn.active {
+    background: var(--dark-green);
+    color: white;
+    border-color: var(--dark-green);
+}
+
+.timer-display {
+    font-size: 6rem;
+    font-weight: 700;
+    color: var(--dark-green);
+    margin-bottom: 30px;
+}
+
+body.dark-theme .timer-display {
+    color: var(--lime-yellow);
+}
+
+.timer-controls {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+/* Task Manager Styles */
+.task-manager-container {
+    background: var(--card-bg);
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.task-manager-container h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: var(--dark-green);
+}
+
+body.dark-theme .task-manager-container h2 {
+    color: var(--lime-yellow);
+}
+
+.task-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+#task-input {
+    flex-grow: 1;
+}
+
+#task-list {
+    list-style: none;
+}
+
+#task-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid var(--input-border);
+}
+
+#task-list li.completed span {
+    text-decoration: line-through;
+    opacity: 0.5;
+}
+
+.task-actions button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    margin-left: 10px;
+}
+
+.task-complete-btn {
+    color: #27ae60;
+}
+
+.task-delete-btn {
+    color: #c0392b;
+}
+
+
 
 /* Footer */
 .footer {
@@ -560,230 +815,4 @@ body.dark-theme .author-name {
     .sidebar {
         padding: 40px;
     }
-}
-
-/* GPA Calculator Styles */
-.gpa-subtitle, .timer-subtitle {
-    font-size: 1rem;
-    color: var(--text-color);
-    opacity: 0.8;
-    margin-top: 5px;
-}
-
-.gpa-calculator-container {
-    background: var(--card-bg);
-    padding: 30px;
-    border-radius: 15px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-}
-
-.gpa-table-section {
-    margin-bottom: 25px;
-    overflow-x: auto;
-}
-
-.gpa-table {
-    width: 100%;
-    border-collapse: collapse;
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.gpa-table thead {
-    background-color: var(--dark-green);
-    color: var(--text-light);
-}
-
-.gpa-table th {
-    padding: 15px;
-    text-align: left;
-    font-weight: 600;
-}
-
-.gpa-table td {
-    padding: 12px 15px;
-    border-bottom: 1px solid var(--input-border);
-}
-
-.gpa-table tbody tr:hover {
-    background-color: rgba(227, 239, 38, 0.05);
-}
-
-.gpa-table input {
-    width: 100%;
-    padding: 8px 12px;
-    border: 1px solid var(--input-border);
-    border-radius: 6px;
-    background: var(--grid-bg);
-    color: var(--text-color);
-    font-size: 0.95rem;
-}
-
-.remove-row-btn {
-    background-color: #ff4444;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.85rem;
-    transition: var(--transition);
-}
-
-.remove-row-btn:hover {
-    background-color: #cc0000;
-}
-
-#add-gpa-row {
-    margin-bottom: 30px;
-}
-
-.secondary-btn {
-    background-color: var(--lime-yellow);
-    color: var(--deep-green);
-    padding: 12px 20px;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: var(--transition);
-}
-
-.secondary-btn:hover {
-    background-color: #cfdf1d;
-    transform: translateY(-2px);
-}
-
-.gpa-result-box {
-    background: linear-gradient(135deg, rgba(7, 102, 83, 0.1), rgba(227, 239, 38, 0.1));
-    padding: 40px;
-    border-radius: 15px;
-    text-align: center;
-    margin-top: 40px;
-    border: 2px solid var(--dark-green);
-}
-
-.result-formula {
-    font-size: 1rem;
-    color: var(--text-color);
-    margin-bottom: 25px;
-    opacity: 0.9;
-    font-style: italic;
-}
-
-.result-display {
-    margin-bottom: 30px;
-}
-
-.result-label {
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: var(--text-color);
-    margin-bottom: 10px;
-}
-
-.result-value {
-    font-size: 4rem;
-    font-weight: 700;
-    color: var(--dark-green);
-    background: linear-gradient(135deg, var(--dark-green), var(--lime-yellow));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.gpa-result-box .primary-btn {
-    margin-right: 10px;
-}
-
-/* Study Timer Styles */
-.timer-container {
-    background: var(--card-bg);
-    padding: 50px 40px;
-    border-radius: 15px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-    text-align: center;
-    max-width: 600px;
-    margin: 0 auto;
-}
-
-.timer-display {
-    font-size: 6rem;
-    font-weight: 700;
-    color: var(--dark-green);
-    margin-bottom: 40px;
-    font-family: 'Courier New', monospace;
-    text-shadow: 0 4px 15px rgba(7, 102, 83, 0.2);
-}
-
-body.dark-theme .timer-display {
-    color: var(--lime-yellow);
-    text-shadow: 0 4px 15px rgba(227, 239, 38, 0.2);
-}
-
-.timer-mode-selector {
-    display: flex;
-    justify-content: center;
-    gap: 30px;
-    margin-bottom: 40px;
-    flex-wrap: wrap;
-}
-
-.timer-mode-selector label {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: var(--transition);
-}
-
-.timer-mode-selector input[type="radio"] {
-    cursor: pointer;
-    width: 18px;
-    height: 18px;
-}
-
-.timer-mode-selector label:hover {
-    color: var(--dark-green);
-}
-
-body.dark-theme .timer-mode-selector label:hover {
-    color: var(--lime-yellow);
-}
-
-.timer-controls {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-bottom: 30px;
-    flex-wrap: wrap;
-}
-
-.timer-controls button {
-    padding: 12px 30px;
-    font-size: 1rem;
-    font-weight: 600;
-}
-
-.timer-controls button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.timer-info {
-    font-size: 1.2rem;
-    color: var(--text-color);
-    margin-top: 30px;
-    padding-top: 20px;
-    border-top: 1px solid var(--input-border);
-}
-
-.timer-info span {
-    font-weight: 700;
-    color: var(--dark-green);
-}
-
-body.dark-theme .timer-info span {
-    color: var(--lime-yellow);
 }
