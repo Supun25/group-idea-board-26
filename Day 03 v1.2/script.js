@@ -1,233 +1,302 @@
+// State Management
+let ideas = JSON.parse(localStorage.getItem('g26_ideas')) || [];
+let currentTheme = localStorage.getItem('g26_theme') || 'light';
+
+// Timer State
+let timerInterval = null;
+let timeLeft = 1500; // 25 minutes in seconds
+let isTimerRunning = false;
+
+// Initialize
 document.addEventListener('DOMContentLoaded', () => {
-    const nameInput = document.getElementById('name-input');
-    const ideaInput = document.getElementById('idea-input');
-    const addIdeaBtn = document.getElementById('add-idea-btn');
-    const resetBoardBtn = document.getElementById('reset-board-btn');
-    const themeToggle = document.getElementById('theme-toggle');
-    const sortDropdown = document.getElementById('sort-dropdown');
-    const ideaListContainer = document.getElementById('idea-list');
+    initTheme();
+    initNavigation();
+    initIdeaBoard();
+    initBackground();
+    initStudyTimer();
+    renderIdeas();
+});
 
-    // Initialize data
-    let ideas = JSON.parse(localStorage.getItem('ideas')) || [
-        { id: 1, text: 'Build a study planner', author: 'Alice', likes: 0, dislikes: 0, pinned: false, userVote: null, timestamp: new Date().toLocaleString() },
-        { id: 2, text: 'Start a podcast', author: 'Bob', likes: 0, dislikes: 0, pinned: false, userVote: null, timestamp: new Date().toLocaleString() },
-        { id: 3, text: 'Organize a coding workshop', author: 'Charlie', likes: 0, dislikes: 0, pinned: false, userVote: null, timestamp: new Date().toLocaleString() }
-    ];
-    let idCounter = ideas.length > 0 ? Math.max(...ideas.map(i => i.id)) + 1 : 1;
-    let currentSortMethod = localStorage.getItem('sortMethod') || 'likes';
+// --- Theme Logic ---
+function initTheme() {
+    document.body.setAttribute('data-theme', currentTheme);
+    const themeBtn = document.getElementById('theme-btn');
+    updateThemeIcon();
 
-    // Theme toggle
-    function initTheme() {
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'dark') {
-            document.body.classList.add('dark-theme');
-            themeToggle.textContent = '☀️';
-        }
+    themeBtn.addEventListener('click', () => {
+        currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+        document.body.setAttribute('data-theme', currentTheme);
+        localStorage.setItem('g26_theme', currentTheme);
+        updateThemeIcon();
+    });
+}
+
+function updateThemeIcon() {
+    const icon = document.querySelector('#theme-btn i');
+    icon.className = currentTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+}
+
+// --- Navigation (SPA Logic) ---
+function initNavigation() {
+    const navLinks = document.querySelectorAll('.nav-link');
+    const views = document.querySelectorAll('.view');
+
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetView = link.getAttribute('data-view');
+            
+            navLinks.forEach(l => l.classList.remove('active'));
+            link.classList.add('active');
+
+            views.forEach(v => {
+                v.classList.remove('active');
+                if (v.id === targetView) v.classList.add('active');
+            });
+        });
+    });
+}
+
+window.navigateTo = (viewId) => {
+    const navLink = document.querySelector(`.nav-link[data-view="${viewId}"]`);
+    if (navLink) navLink.click();
+};
+
+// --- Background Animation ---
+function initBackground() {
+    const bg = document.getElementById('bg-animation');
+    const bulbCount = 15;
+    bg.innerHTML = '';
+
+    for (let i = 0; i < bulbCount; i++) {
+        const bulb = document.createElement('i');
+        bulb.className = 'fas fa-lightbulb floating-bulb';
+        const left = Math.random() * 100;
+        const duration = 15 + Math.random() * 20;
+        const delay = Math.random() * 20;
+        const size = 1 + Math.random() * 2;
+        bulb.style.left = `${left}%`;
+        bulb.style.animationDuration = `${duration}s`;
+        bulb.style.animationDelay = `-${delay}s`;
+        bulb.style.fontSize = `${size}rem`;
+        bg.appendChild(bulb);
     }
+}
 
-    themeToggle.addEventListener('click', () => {
-        document.body.classList.toggle('dark-theme');
-        const isDark = document.body.classList.contains('dark-theme');
-        localStorage.setItem('theme', isDark ? 'dark' : 'light');
-        themeToggle.textContent = isDark ? '☀️' : '🌙';
-    });
+// --- Group Idea Board Logic ---
+function initIdeaBoard() {
+    const form = document.getElementById('idea-form');
+    const sortSelect = document.getElementById('sort-ideas');
 
-    // Sort dropdown listener
-    sortDropdown.addEventListener('change', (e) => {
-        currentSortMethod = e.target.value;
-        localStorage.setItem('sortMethod', currentSortMethod);
-        renderIdeas();
-    });
-
-    // Set initial dropdown value
-    sortDropdown.value = currentSortMethod;
-
-    // Add idea
-    addIdeaBtn.addEventListener('click', addIdea);
-    ideaInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') addIdea();
-    });
-
-    function addIdea() {
-        const name = nameInput.value.trim();
-        const text = ideaInput.value.trim();
-
-        if (!name) {
-            alert('Please enter your name.');
-            nameInput.focus();
-            return;
-        }
-
-        if (!text) {
-            alert('Please enter an idea.');
-            ideaInput.focus();
-            return;
-        }
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('user-name').value;
+        const text = document.getElementById('idea-text').value;
 
         const newIdea = {
-            id: idCounter++,
-            text: text,
-            author: name,
+            id: Date.now(),
+            name,
+            text,
+            timestamp: new Date().toLocaleString(),
             likes: 0,
             dislikes: 0,
             pinned: false,
-            userVote: null,
-            timestamp: new Date().toLocaleString()
+            rawTime: Date.now()
         };
 
         ideas.unshift(newIdea);
-        saveData();
+        saveIdeas();
         renderIdeas();
-
-        nameInput.value = '';
-        ideaInput.value = '';
-        ideaInput.focus();
-    }
-
-    // Reset board
-    resetBoardBtn.addEventListener('click', () => {
-        if (confirm('Are you sure you want to clear all ideas? This cannot be undone.')) {
-            ideas = [];
-            saveData();
-            renderIdeas();
-        }
+        form.reset();
     });
 
-    // Delete idea
-    function deleteIdea(id) {
-        ideas = ideas.filter(idea => idea.id !== id);
-        saveData();
+    sortSelect.addEventListener('change', renderIdeas);
+}
+
+function renderIdeas() {
+    const container = document.getElementById('ideas-container');
+    const totalDisplay = document.getElementById('total-ideas');
+    const sortBy = document.getElementById('sort-ideas').value;
+
+    totalDisplay.textContent = ideas.length;
+    container.innerHTML = '';
+
+    let sortedIdeas = [...ideas];
+    sortedIdeas.sort((a, b) => {
+        if (a.pinned && !b.pinned) return -1;
+        if (!a.pinned && b.pinned) return 1;
+        if (sortBy === 'likes') return b.likes - a.likes;
+        return b.rawTime - a.rawTime;
+    });
+
+    sortedIdeas.forEach(idea => {
+        const card = document.createElement('div');
+        card.className = `idea-card ${idea.pinned ? 'pinned' : ''}`;
+        card.innerHTML = `
+            <div class="card-header">
+                <span class="card-name">${idea.name}</span>
+                <span class="card-time">${idea.timestamp}</span>
+            </div>
+            <p class="card-text">${idea.text}</p>
+            <div class="card-footer">
+                <div class="vote-btns">
+                    <button class="btn-vote" onclick="vote(${idea.id}, 'like')"><i class="fas fa-thumbs-up"></i> ${idea.likes}</button>
+                    <button class="btn-vote" onclick="vote(${idea.id}, 'dislike')"><i class="fas fa-thumbs-down"></i> ${idea.dislikes}</button>
+                </div>
+                <div class="action-btns">
+                    <button class="btn-pin ${idea.pinned ? 'active' : ''}" onclick="togglePin(${idea.id})"><i class="fas fa-thumbtack"></i></button>
+                    <button class="btn-delete" onclick="deleteIdea(${idea.id})"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+
+window.vote = (id, type) => {
+    const idea = ideas.find(i => i.id === id);
+    if (idea) {
+        if (type === 'like') idea.likes++;
+        else idea.dislikes++;
+        saveIdeas();
         renderIdeas();
     }
+};
 
-    // Pin/Unpin idea
-    function togglePin(id) {
-        const idea = ideas.find(i => i.id === id);
-        if (idea) {
-            idea.pinned = !idea.pinned;
-            saveData();
-            renderIdeas();
+window.togglePin = (id) => {
+    const idea = ideas.find(i => i.id === id);
+    if (idea) {
+        idea.pinned = !idea.pinned;
+        saveIdeas();
+        renderIdeas();
+    }
+};
+
+window.deleteIdea = (id) => {
+    if (confirm('Are you sure you want to delete this idea?')) {
+        ideas = ideas.filter(i => i.id !== id);
+        saveIdeas();
+        renderIdeas();
+    }
+};
+
+function saveIdeas() {
+    localStorage.setItem('g26_ideas', JSON.stringify(ideas));
+}
+
+// --- GPA Calculator Logic ---
+window.addGpaRow = () => {
+    const tbody = document.getElementById('gpa-rows');
+    const newRow = document.createElement('tr');
+    newRow.innerHTML = `
+        <td><input type="text" placeholder="Course Name" class="course-name"></td>
+        <td><input type="number" step="0.5" min="0" placeholder="Credits" class="course-credits"></td>
+        <td><input type="number" step="0.01" min="0" max="4" placeholder="GP" class="course-grade"></td>
+        <td><button class="btn-remove" onclick="removeGpaRow(this)"><i class="fas fa-times"></i></button></td>
+    `;
+    tbody.appendChild(newRow);
+};
+
+window.removeGpaRow = (btn) => {
+    btn.closest('tr').remove();
+};
+
+window.calculateGPA = () => {
+    const credits = document.querySelectorAll('.course-credits');
+    const grades = document.querySelectorAll('.course-grade');
+    const resultDiv = document.getElementById('gpa-result');
+    const gpaDisplay = document.getElementById('final-gpa');
+
+    let totalGradeCredits = 0;
+    let totalCredits = 0;
+    let valid = 0;
+
+    for (let i = 0; i < credits.length; i++) {
+        const c = parseFloat(credits[i].value);
+        const g = parseFloat(grades[i].value);
+        if (!isNaN(c) && !isNaN(g)) {
+            totalGradeCredits += (g * c);
+            totalCredits += c;
+            valid++;
         }
     }
 
-    // Vote on idea (like/dislike)
-    function vote(id, voteType) {
-        const idea = ideas.find(i => i.id === id);
-        if (!idea) return;
+    if (valid === 0 || totalCredits === 0) {
+        alert('Please enter valid data for at least one course.');
+        return;
+    }
 
-        // Remove previous vote
-        if (idea.userVote === 'like') {
-            idea.likes--;
-        } else if (idea.userVote === 'dislike') {
-            idea.dislikes--;
-        }
+    const finalGPA = totalGradeCredits / totalCredits;
+    gpaDisplay.textContent = finalGPA.toFixed(2);
+    resultDiv.classList.remove('hidden');
+};
 
-        // Apply new vote
-        if (idea.userVote === voteType) {
-            // Clicking same vote again unvotes
-            idea.userVote = null;
-        } else {
-            if (voteType === 'like') {
-                idea.likes++;
-            } else if (voteType === 'dislike') {
-                idea.dislikes++;
+// --- Study Timer (Pomodoro) Logic ---
+function initStudyTimer() {
+    const display = document.getElementById('timer-display');
+    const startBtn = document.getElementById('timer-start');
+    const pauseBtn = document.getElementById('timer-pause');
+    const resetBtn = document.getElementById('timer-reset');
+    const modeBtns = document.querySelectorAll('.btn-mode');
+
+    function updateDisplay() {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        display.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        document.title = `${display.textContent} - Study Hub`;
+    }
+
+    startBtn.addEventListener('click', () => {
+        if (isTimerRunning) return;
+        isTimerRunning = true;
+        startBtn.classList.add('hidden');
+        pauseBtn.classList.remove('hidden');
+
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            updateDisplay();
+
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                isTimerRunning = false;
+                startBtn.classList.remove('hidden');
+                pauseBtn.classList.add('hidden');
+                alert('Time is up! Take a break or start a new session.');
+                // Optional: Sound notification
+                // new Audio('https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3').play();
             }
-            idea.userVote = voteType;
-        }
+        }, 1000);
+    });
 
-        saveData();
-        renderIdeas();
-    }
+    pauseBtn.addEventListener('click', () => {
+        clearInterval(timerInterval);
+        isTimerRunning = false;
+        startBtn.classList.remove('hidden');
+        pauseBtn.classList.add('hidden');
+    });
 
-    // Sort ideas based on current sort method
-    function sortIdeas() {
-        const pinned = ideas.filter(i => i.pinned);
-        const unpinned = ideas.filter(i => !i.pinned);
+    resetBtn.addEventListener('click', () => {
+        clearInterval(timerInterval);
+        isTimerRunning = false;
+        startBtn.classList.remove('hidden');
+        pauseBtn.classList.add('hidden');
+        const activeMode = document.querySelector('.btn-mode.active');
+        timeLeft = parseInt(activeMode.dataset.time);
+        updateDisplay();
+    });
 
-        if (currentSortMethod === 'likes') {
-            unpinned.sort((a, b) => b.likes - a.likes);
-        } else if (currentSortMethod === 'time') {
-            // Keep original order (newest first - already prepended)
-            // unpinned is already in time order
-        }
-
-        return [...pinned, ...unpinned];
-    }
-
-    // Render ideas
-    function renderIdeas() {
-        ideaListContainer.innerHTML = '';
-
-        // Update idea count
-        const countDisplay = document.getElementById('count-display');
-        if (countDisplay) {
-            countDisplay.textContent = `${ideas.length} ${ideas.length === 1 ? 'idea' : 'ideas'}`;
-        }
-
-        if (ideas.length === 0) {
-            ideaListContainer.innerHTML = '<div class="empty-state"><p>✨ No ideas yet. Be the first to add one!</p></div>';
-            return;
-        }
-
-        const sorted = sortIdeas();
-
-        sorted.forEach(idea => {
-            const card = document.createElement('div');
-            card.className = `idea-card ${idea.pinned ? 'pinned' : ''}`;
-
-            const isLiked = idea.userVote === 'like';
-            const isDisliked = idea.userVote === 'dislike';
-
-            card.innerHTML = `
-                <div class="idea-content">
-                    <div class="idea-text">${escapeHtml(idea.text)}</div>
-                    <div class="idea-meta">
-                        <span>By <span class="idea-author">${escapeHtml(idea.author)}</span></span>
-                        <span class="idea-timestamp">📅 ${idea.timestamp}</span>
-                    </div>
-                </div>
-                <div class="idea-buttons">
-                    <button class="btn-card btn-like ${isLiked ? 'active' : ''}" data-id="${idea.id}" data-vote="like">
-                        👍 <span class="vote-counter">${idea.likes}</span>
-                    </button>
-                    <button class="btn-card btn-dislike ${isDisliked ? 'active' : ''}" data-id="${idea.id}" data-vote="dislike">
-                        👎 <span class="vote-counter">${idea.dislikes}</span>
-                    </button>
-                    <button class="btn-card btn-pin ${idea.pinned ? 'pinned' : ''}" data-id="${idea.id}">
-                        ${idea.pinned ? '📍 Unpin' : '📌 Pin'}
-                    </button>
-                    <button class="btn-card btn-delete" data-id="${idea.id}">🗑️ Delete</button>
-                </div>
-            `;
-
-            // Add event listeners
-            card.querySelector('.btn-like').addEventListener('click', () => vote(idea.id, 'like'));
-            card.querySelector('.btn-dislike').addEventListener('click', () => vote(idea.id, 'dislike'));
-            card.querySelector('.btn-pin').addEventListener('click', () => togglePin(idea.id));
-            card.querySelector('.btn-delete').addEventListener('click', () => deleteIdea(idea.id));
-
-            ideaListContainer.appendChild(card);
+    modeBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            modeBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            startBtn.classList.remove('hidden');
+            pauseBtn.classList.add('hidden');
+            timeLeft = parseInt(btn.dataset.time);
+            updateDisplay();
         });
-    }
+    });
 
-    // Save data to localStorage
-    function saveData() {
-        localStorage.setItem('ideas', JSON.stringify(ideas));
-    }
-
-    // Escape HTML to prevent XSS
-    function escapeHtml(text) {
-        const map = {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#039;'
-        };
-        return text.replace(/[&<>"']/g, char => map[char]);
-    }
-
-    // Initialize
-    initTheme();
-    renderIdeas();
-});
+    updateDisplay();
+}
