@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap');
 
 :root {
     --light-cream: #fffdee;
@@ -10,6 +10,8 @@
     --text-dark: #333;
     --text-light: #fffdee;
     --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    --font-heading: 'Montserrat', sans-serif;
+    --font-body: 'Poppins', sans-serif;
 }
 
 /* Theme Variables */
@@ -39,8 +41,13 @@ body.dark-theme {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--font-body);
 }
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+}
+
 
 body {
     background-color: var(--bg-color);
@@ -245,6 +252,11 @@ body.dark-theme .hero-subtitle {
     max-width: 1200px;
 }
 
+.hero-features a {
+    text-decoration: none;
+    color: inherit;
+}
+
 .feature-card {
     background: var(--card-bg);
     padding: 30px;
@@ -253,6 +265,7 @@ body.dark-theme .hero-subtitle {
     text-align: center;
     transition: var(--transition);
     box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    height: 100%;
 }
 
 .feature-card:hover {
