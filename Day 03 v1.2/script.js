@@ -315,10 +315,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function addIdea() {
         const name = userNameInput.value.trim();
-        const text = ideaTextInput.value.trim();
+        // Trim whitespace and replace excessive internal spaces with a single space
+        const text = ideaTextInput.value.trim().replace(/\s+/g, ' ');
 
         if (!name || !text) {
             alert('Please fill in both your name and your idea!');
+            return;
+        }
+
+        // // Profanity filter (Basic check for demonstration)
+        // const curseWords = ['badword1', 'badword2', 'badword3']; // Replace with actual words as needed
+        // const containsCurse = curseWords.some(word => 
+        //     new RegExp(`\\b${word}\\b`, 'i').test(text)
+        // );
+
+        // if (containsCurse) {
+        //     alert('Your idea contains inappropriate language. Please keep it professional!');
+        //     return;
+        // }
+
+        // if (text.length > 256) {
+        //     alert('Your idea is too long! Please keep it under 256 characters.');
+        //     return;
+        // }
+
+        // Duplicate check (case-insensitive and whitespace-agnostic)
+        const isDuplicate = ideas.some(idea => 
+            idea.text.trim().replace(/\s+/g, ' ').toLowerCase() === text.toLowerCase()
+        );
+
+        if (isDuplicate) {
+            alert('This idea has already been posted! Please share something new.');
             return;
         }
 
